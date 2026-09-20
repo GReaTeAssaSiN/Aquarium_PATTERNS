@@ -10,6 +10,7 @@ public:
     explicit FreshwaterWeed(Vector2 position);
 
     void Draw(sf::RenderWindow& window) const override;
+    std::unique_ptr<Weed> Clone(Vector2 position) const override;
 };
 
 #endif // FRESHWATER_WEED_H_

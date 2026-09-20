@@ -11,6 +11,7 @@ public:
 
     void Update(float dt, Vector2 bounds) override;
     void Draw(sf::RenderWindow& window) const override;
+    std::unique_ptr<Fish> Clone(Vector2 position) const override;
 
 private:
     float radius_;

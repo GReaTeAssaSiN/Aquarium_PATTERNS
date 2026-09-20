@@ -10,3 +10,10 @@ void FreshwaterFood::Draw(sf::RenderWindow& window) const
     shape.setPosition({position_.x, position_.y});
     window.draw(shape);
 }
+
+std::unique_ptr<Food> FreshwaterFood::Clone(Vector2 position) const
+{
+    auto copy = std::make_unique<FreshwaterFood>(*this);
+    copy->position_ = position;
+    return copy;
+}

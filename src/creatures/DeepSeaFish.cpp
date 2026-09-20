@@ -34,3 +34,10 @@ void DeepSeaFish::Draw(sf::RenderWindow& window) const
     diamond.setPosition({position_.x, position_.y});
     window.draw(diamond);
 }
+
+std::unique_ptr<Fish> DeepSeaFish::Clone(Vector2 position) const
+{
+    auto copy = std::make_unique<DeepSeaFish>(*this);
+    copy->position_ = position;
+    return copy;
+}

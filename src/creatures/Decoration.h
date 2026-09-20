@@ -1,6 +1,8 @@
 #ifndef DECORATION_H_
 #define DECORATION_H_
 
+#include <memory>
+
 #include <SFML/Graphics.hpp>
 
 #include "core/Vector2.h"
@@ -14,6 +16,8 @@ public:
     virtual ~Decoration() = default;
 
     virtual void Draw(sf::RenderWindow& window) const = 0;
+    // Prototype: returns a copy of this object placed at `position`.
+    virtual std::unique_ptr<Decoration> Clone(Vector2 position) const = 0;
 
 protected:
     Vector2 position_;

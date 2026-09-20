@@ -10,6 +10,7 @@ public:
     explicit DeepSeaDecoration(Vector2 position);
 
     void Draw(sf::RenderWindow& window) const override;
+    std::unique_ptr<Decoration> Clone(Vector2 position) const override;
 };
 
 #endif // DEEP_SEA_DECORATION_H_

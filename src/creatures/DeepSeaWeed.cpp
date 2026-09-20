@@ -10,3 +10,10 @@ void DeepSeaWeed::Draw(sf::RenderWindow& window) const
     shape.setPosition({position_.x, position_.y});
     window.draw(shape);
 }
+
+std::unique_ptr<Weed> DeepSeaWeed::Clone(Vector2 position) const
+{
+    auto copy = std::make_unique<DeepSeaWeed>(*this);
+    copy->position_ = position;
+    return copy;
+}

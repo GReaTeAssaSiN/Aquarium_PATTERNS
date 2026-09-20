@@ -1,6 +1,8 @@
 #ifndef WEED_H_
 #define WEED_H_
 
+#include <memory>
+
 #include <SFML/Graphics.hpp>
 
 #include "core/Vector2.h"
@@ -13,6 +15,8 @@ public:
     virtual ~Weed() = default;
 
     virtual void Draw(sf::RenderWindow& window) const = 0;
+    // Prototype: returns a copy of this object placed at `position`.
+    virtual std::unique_ptr<Weed> Clone(Vector2 position) const = 0;
 
 protected:
     Vector2 position_;

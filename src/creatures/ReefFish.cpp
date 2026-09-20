@@ -33,3 +33,10 @@ void ReefFish::Draw(sf::RenderWindow& window) const
     triangle.setPosition({position_.x, position_.y});
     window.draw(triangle);
 }
+
+std::unique_ptr<Fish> ReefFish::Clone(Vector2 position) const
+{
+    auto copy = std::make_unique<ReefFish>(*this);
+    copy->position_ = position;
+    return copy;
+}

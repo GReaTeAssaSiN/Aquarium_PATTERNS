@@ -30,11 +30,8 @@ int main()
         "Aquarium Ecosystem Simulator");
     window.setFramerateLimit(60);
 
-    FreshwaterFactory freshwaterFactory;
-    ReefFactory reefFactory;
-    DeepSeaFactory deepSeaFactory;
     const std::array<const AquariumFactory*, 3> biomes{
-        &freshwaterFactory, &reefFactory, &deepSeaFactory};
+        &FreshwaterFactory::GetInstance(), &ReefFactory::GetInstance(), &DeepSeaFactory::GetInstance()};
     std::size_t activeBiomeIndex = 0;
 
     Scene scene(bounds, *biomes[activeBiomeIndex]);

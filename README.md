@@ -41,9 +41,17 @@ cmake --build .
 рантайме без пересборки (клавиша `B`). Четыре иерархии абстрактных продуктов:
 `Fish`, `Food`, `Weed`, `Decoration`.
 
+### Лаба 2 — Prototype + Singleton ✅
+
+Каждая конкретная фабрика (`FreshwaterFactory`/`ReefFactory`/`DeepSeaFactory`)
+теперь синглтон (`GetInstance()`, приватный конструктор). Внутри себя хранит
+карту прототипов по видам рыб + по одному прототипу еды/водоросли/декорации,
+заполняемую один раз при первом обращении. `MakeFish`/`MakeFood`/`MakeWeed`/
+`MakeDecoration` больше не вызывают `new` — клонируют готовый прототип через
+виртуальный `Clone(position)`, добавленный во все продукты.
+
 ### Дальше по плану
 
-2. Prototype + Singleton — фабрика как синглтон, клонирование существ
 3. Builder + Factory Method — сборка отчётов о состоянии аквариума
 4. Adapter — `StackAdapter`/`QueueAdapter` поверх `std::vector`/`std::list`
 5. Composite — `Shoal` (стая) как составной `AquaticEntity`

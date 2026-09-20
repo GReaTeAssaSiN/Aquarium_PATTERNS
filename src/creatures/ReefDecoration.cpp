@@ -14,3 +14,10 @@ void ReefDecoration::Draw(sf::RenderWindow& window) const
     fan.setPosition({position_.x, position_.y});
     window.draw(fan);
 }
+
+std::unique_ptr<Decoration> ReefDecoration::Clone(Vector2 position) const
+{
+    auto copy = std::make_unique<ReefDecoration>(*this);
+    copy->position_ = position;
+    return copy;
+}

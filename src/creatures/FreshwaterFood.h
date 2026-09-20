@@ -10,6 +10,7 @@ public:
     explicit FreshwaterFood(Vector2 position);
 
     void Draw(sf::RenderWindow& window) const override;
+    std::unique_ptr<Food> Clone(Vector2 position) const override;
 };
 
 #endif // FRESHWATER_FOOD_H_
