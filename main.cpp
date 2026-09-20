@@ -112,7 +112,7 @@ int main()
 
     auto refreshHud = [&](const char* biomeName, const char* reportFormat)
     {
-        hudText.setString(BuildHudText(biomeName, reportFormat, actionHistory.GetRecent(3)));
+        hudText.setString(BuildHudText(biomeName, reportFormat, actionHistory.GetRecent(5)));
         const sf::FloatRect textBounds = hudText.getLocalBounds();
         hudBackground.setPosition({6.f, 6.f});
         hudBackground.setSize({textBounds.size.x + 20.f, textBounds.size.y + 24.f});
