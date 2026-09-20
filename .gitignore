@@ -1,0 +1,20 @@
+# Out-of-source CMake build directory
+/build/
+/cmake-build-*/
+
+# Compiled objects / binaries (in case of accidental in-source builds)
+*.o
+*.obj
+*.exe
+
+# macOS Finder metadata
+.DS_Store
+
+# Markdown notes (Claude Code instructions, etc.) — keep only README.md tracked
+*.md
+!README.md
+
+# VS Code: keep settings.json (shared project config for IntelliSense/CMake Tools),
+# ignore everything else the extensions generate locally
+.vscode/*
+!.vscode/settings.json
