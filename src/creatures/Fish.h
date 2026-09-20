@@ -27,6 +27,7 @@ public:
 
     Species GetSpecies() const { return species_; }
     Vector2 GetPosition() const { return position_; }
+    void SetPosition(Vector2 position) { position_ = position; }
 
 protected:
     Species species_;

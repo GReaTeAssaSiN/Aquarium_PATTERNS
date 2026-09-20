@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 
+#include "builders/ReportData.h"
 #include "core/Vector2.h"
 #include "creatures/Decoration.h"
 #include "creatures/Fish.h"
@@ -18,6 +19,9 @@ class Scene
 public:
     Scene(Vector2 bounds, const AquariumFactory& initialFactory);
 
+    // Rescales every existing inhabitant's position to fit the new bounds
+    // proportionally, then adopts the new bounds for future spawns/updates.
+    void HandleResize(Vector2 newBounds);
     void SwitchBiome(const AquariumFactory& factory);
     const char* ActiveBiomeName() const { return activeFactory_->GetName(); }
 
@@ -28,6 +32,8 @@ public:
 
     void Update(float dt);
     void Draw(sf::RenderWindow& window) const;
+
+    ReportData GetReportData() const;
 
 private:
     Vector2 bounds_;

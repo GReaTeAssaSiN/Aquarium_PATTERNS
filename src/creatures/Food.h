@@ -18,6 +18,9 @@ public:
     // Prototype: returns a copy of this object placed at `position`.
     virtual std::unique_ptr<Food> Clone(Vector2 position) const = 0;
 
+    Vector2 GetPosition() const { return position_; }
+    void SetPosition(Vector2 position) { position_ = position; }
+
 protected:
     Vector2 position_;
 };

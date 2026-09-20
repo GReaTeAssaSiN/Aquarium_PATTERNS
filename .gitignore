@@ -10,6 +10,10 @@
 # macOS Finder metadata
 .DS_Store
 
+# Generated aquarium reports (Lab 3 — Builder), exported at runtime
+# (only needed for the project-root case; the build/ case is already covered by /build/ above)
+/Reports/
+
 # Markdown notes (Claude Code instructions, etc.) — keep only README.md tracked
 *.md
 !README.md
