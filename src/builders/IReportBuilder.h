@@ -16,6 +16,7 @@ public:
     virtual void BuildHeader(const std::string& activeBiomeName, const std::string& date) = 0;
     virtual void BuildBody(const std::vector<FishInfo>& fish) = 0;
     virtual void BuildFooter(const std::vector<BiomeCounts>& biomeCounts) = 0;
+    virtual void BuildSessionLog(const std::vector<std::string>& exportedReports) = 0;
     virtual std::string GetResult() const = 0;
 };
 

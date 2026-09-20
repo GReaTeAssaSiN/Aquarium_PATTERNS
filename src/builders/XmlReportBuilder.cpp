@@ -34,5 +34,13 @@ void XmlReportBuilder::BuildFooter(const std::vector<BiomeCounts>& biomeCounts)
         xml_ += "    </biome>\n";
     }
     xml_ += "  </biomes>\n";
+}
+
+void XmlReportBuilder::BuildSessionLog(const std::vector<std::string>& exportedReports)
+{
+    xml_ += "  <exportedReports>\n";
+    for (const auto& filename : exportedReports)
+        xml_ += "    <report>" + filename + "</report>\n";
+    xml_ += "  </exportedReports>\n";
     xml_ += "</report>\n";
 }

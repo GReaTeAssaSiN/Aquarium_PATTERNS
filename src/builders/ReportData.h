@@ -33,6 +33,7 @@ struct ReportData
     std::string activeBiomeName;
     std::vector<FishInfo> fish;
     std::vector<BiomeCounts> biomeCounts;
+    std::vector<std::string> exportedReports; // filenames exported this session, oldest first
 };
 
 const char* SpeciesName(Species species);

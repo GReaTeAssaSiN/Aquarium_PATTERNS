@@ -32,5 +32,13 @@ void HtmlReportBuilder::BuildFooter(const std::vector<BiomeCounts>& biomeCounts)
                  ", Weed: " + std::to_string(counts.weedCount) +
                  ", Decorations: " + std::to_string(counts.decorationCount) + "</p>";
     }
+}
+
+void HtmlReportBuilder::BuildSessionLog(const std::vector<std::string>& exportedReports)
+{
+    html_ += "<h2>Reports exported this session</h2><ol>";
+    for (const auto& filename : exportedReports)
+        html_ += "<li>" + filename + "</li>";
+    html_ += "</ol>";
     html_ += "</body></html>";
 }

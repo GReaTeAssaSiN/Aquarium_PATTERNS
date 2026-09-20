@@ -32,3 +32,10 @@ void TxtReportBuilder::BuildFooter(const std::vector<BiomeCounts>& biomeCounts)
                 ", Decorations: " + std::to_string(counts.decorationCount) + "\n";
     }
 }
+
+void TxtReportBuilder::BuildSessionLog(const std::vector<std::string>& exportedReports)
+{
+    txt_ += "\nReports exported this session:\n";
+    for (const auto& filename : exportedReports)
+        txt_ += "- " + filename + "\n";
+}

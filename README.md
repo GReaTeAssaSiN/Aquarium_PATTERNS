@@ -67,9 +67,18 @@ cmake --build .
 Готовый отчёт (клавиша `R`) сохраняется в `Reports/` с меткой времени
 в имени файла.
 
+### Лаба 4 — Adapter ✅
+
+`StackAdapter`/`QueueAdapter` — шаблонные обёртки, сужающие широкий интерфейс
+`std::vector`/`std::list` до строгого `Push`/`Pop` (LIFO/FIFO). Используются не
+изолированно, а в двух реальных фичах: `ActionHistory` (журнал последних
+действий пользователя на `StackAdapter`, отображается в HUD, фундамент под
+будущий undo-стек Лабы 7) и `ExportedReportsLog` (хронологический список
+отчётов, экспортированных за сессию, на `QueueAdapter`, попадает отдельной
+секцией в сам отчёт).
+
 ### Дальше по плану
 
-4. Adapter — `StackAdapter`/`QueueAdapter` поверх `std::vector`/`std::list`
 5. Composite — `Shoal` (стая) как составной `AquaticEntity`
 6. Chain of Responsibility — цепочка решений рыбы (хищник → еда → флокинг)
 7. Command — команды с undo/redo, `MacroCommand` для пресетов

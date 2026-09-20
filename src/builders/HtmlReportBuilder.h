@@ -10,6 +10,7 @@ public:
     void BuildHeader(const std::string& activeBiomeName, const std::string& date) override;
     void BuildBody(const std::vector<FishInfo>& fish) override;
     void BuildFooter(const std::vector<BiomeCounts>& biomeCounts) override;
+    void BuildSessionLog(const std::vector<std::string>& exportedReports) override;
     std::string GetResult() const override { return html_; }
 
 private:
