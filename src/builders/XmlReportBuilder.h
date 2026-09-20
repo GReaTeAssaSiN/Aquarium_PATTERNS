@@ -7,9 +7,9 @@
 class XmlReportBuilder : public IReportBuilder
 {
 public:
-    void BuildHeader(const std::string& biomeName, const std::string& date) override;
+    void BuildHeader(const std::string& activeBiomeName, const std::string& date) override;
     void BuildBody(const std::vector<FishInfo>& fish) override;
-    void BuildFooter(std::size_t foodCount, std::size_t weedCount, std::size_t decorationCount) override;
+    void BuildFooter(const std::vector<BiomeCounts>& biomeCounts) override;
     std::string GetResult() const override { return xml_; }
 
 private:

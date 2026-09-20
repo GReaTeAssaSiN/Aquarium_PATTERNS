@@ -1,11 +1,11 @@
 #include "builders/HtmlReportBuilder.h"
 
-void HtmlReportBuilder::BuildHeader(const std::string& biomeName, const std::string& date)
+void HtmlReportBuilder::BuildHeader(const std::string& activeBiomeName, const std::string& date)
 {
     html_ += "<html><head><title>Aquarium Report</title></head><body>";
     html_ += "<h1>Aquarium Report</h1>";
     html_ += "<p>Date: " + date + "</p>";
-    html_ += "<p>Biome: " + biomeName + "</p>";
+    html_ += "<p>Active biome: " + activeBiomeName + "</p>";
 }
 
 void HtmlReportBuilder::BuildBody(const std::vector<FishInfo>& fish)
@@ -13,17 +13,24 @@ void HtmlReportBuilder::BuildBody(const std::vector<FishInfo>& fish)
     html_ += "<h2>Fish (" + std::to_string(fish.size()) + ")</h2><ul>";
     for (const auto& f : fish)
     {
-        html_ += "<li>" + std::string(SpeciesName(f.species)) + " at (" +
+        html_ += "<li>" + std::string(SpeciesName(f.species)) + " (" + f.biomeName + ") at (" +
                  FormatCoordinate(f.position.x) + ", " + FormatCoordinate(f.position.y) + ")</li>";
     }
     html_ += "</ul>";
 }
 
-void HtmlReportBuilder::BuildFooter(std::size_t foodCount, std::size_t weedCount, std::size_t decorationCount)
+void HtmlReportBuilder::BuildFooter(const std::vector<BiomeCounts>& biomeCounts)
 {
-    html_ += "<h2>Other inhabitants</h2>";
-    html_ += "<p>Food: " + std::to_string(foodCount) + "</p>";
-    html_ += "<p>Weed: " + std::to_string(weedCount) + "</p>";
-    html_ += "<p>Decorations: " + std::to_string(decorationCount) + "</p>";
+    html_ += "<h2>By biome</h2>";
+    for (const auto& counts : biomeCounts)
+    {
+        html_ += "<h3>" + counts.biomeName + "</h3>";
+        html_ += "<p>Fish: " + std::to_string(counts.commonFish) + " Common, " +
+                 std::to_string(counts.predatorFish) + " Predator, " +
+                 std::to_string(counts.preyFish) + " Prey</p>";
+        html_ += "<p>Food: " + std::to_string(counts.foodCount) +
+                 ", Weed: " + std::to_string(counts.weedCount) +
+                 ", Decorations: " + std::to_string(counts.decorationCount) + "</p>";
+    }
     html_ += "</body></html>";
 }

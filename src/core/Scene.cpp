@@ -1,5 +1,19 @@
 #include "core/Scene.h"
 
+namespace
+{
+BiomeCounts& FindOrCreateBiomeCounts(std::vector<BiomeCounts>& counts, const std::string& biomeName)
+{
+    for (auto& entry : counts)
+    {
+        if (entry.biomeName == biomeName)
+            return entry;
+    }
+    counts.push_back({biomeName});
+    return counts.back();
+}
+}
+
 Scene::Scene(Vector2 bounds, const AquariumFactory& initialFactory)
     : bounds_(bounds), activeFactory_(&initialFactory) {}
 
@@ -66,11 +80,27 @@ void Scene::Draw(sf::RenderWindow& window) const
 ReportData Scene::GetReportData() const
 {
     ReportData data;
-    data.biomeName = activeFactory_->GetName();
+    data.activeBiomeName = activeFactory_->GetName();
+
     for (const auto& fish : fish_)
-        data.fish.push_back({fish->GetSpecies(), fish->GetPosition()});
-    data.foodCount = food_.size();
-    data.weedCount = weed_.size();
-    data.decorationCount = decoration_.size();
+    {
+        const std::string biomeName = fish->GetFamilyName();
+        data.fish.push_back({fish->GetSpecies(), fish->GetPosition(), biomeName});
+
+        BiomeCounts& counts = FindOrCreateBiomeCounts(data.biomeCounts, biomeName);
+        switch (fish->GetSpecies())
+        {
+            case Species::Predator: counts.predatorFish++; break;
+            case Species::Prey: counts.preyFish++; break;
+            default: counts.commonFish++; break;
+        }
+    }
+    for (const auto& food : food_)
+        FindOrCreateBiomeCounts(data.biomeCounts, food->GetFamilyName()).foodCount++;
+    for (const auto& weed : weed_)
+        FindOrCreateBiomeCounts(data.biomeCounts, weed->GetFamilyName()).weedCount++;
+    for (const auto& decoration : decoration_)
+        FindOrCreateBiomeCounts(data.biomeCounts, decoration->GetFamilyName()).decorationCount++;
+
     return data;
 }

@@ -39,6 +39,16 @@ float RandomInRange(float max)
     return static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * max;
 }
 
+Species RandomSpecies()
+{
+    switch (std::rand() % 3)
+    {
+        case 0: return Species::Predator;
+        case 1: return Species::Prey;
+        default: return Species::Common;
+    }
+}
+
 // Used both as the report's "generated at" timestamp and as part of its filename,
 // so a report's content and its filename always agree on when it was made.
 std::string CurrentTimestamp()
@@ -128,7 +138,7 @@ int main()
                 }
                 else if (keyPressed->code == sf::Keyboard::Key::Space)
                 {
-                    scene.SpawnFish(Species::Common, {RandomInRange(bounds.x), RandomInRange(bounds.y)});
+                    scene.SpawnFish(RandomSpecies(), {RandomInRange(bounds.x), RandomInRange(bounds.y)});
                 }
                 else if (keyPressed->code == sf::Keyboard::Key::F)
                 {

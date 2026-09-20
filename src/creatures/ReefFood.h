@@ -11,6 +11,7 @@ public:
 
     void Draw(sf::RenderWindow& window) const override;
     std::unique_ptr<Food> Clone(Vector2 position) const override;
+    const char* GetFamilyName() const override { return "Reef"; }
 };
 
 #endif // REEF_FOOD_H_

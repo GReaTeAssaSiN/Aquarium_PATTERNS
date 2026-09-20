@@ -13,15 +13,26 @@ struct FishInfo
 {
     Species species;
     Vector2 position;
+    std::string biomeName;
+};
+
+// Per-biome breakdown: how many of each inhabitant currently belong to one family.
+struct BiomeCounts
+{
+    std::string biomeName;
+    std::size_t commonFish = 0;
+    std::size_t predatorFish = 0;
+    std::size_t preyFish = 0;
+    std::size_t foodCount = 0;
+    std::size_t weedCount = 0;
+    std::size_t decorationCount = 0;
 };
 
 struct ReportData
 {
-    std::string biomeName;
+    std::string activeBiomeName;
     std::vector<FishInfo> fish;
-    std::size_t foodCount = 0;
-    std::size_t weedCount = 0;
-    std::size_t decorationCount = 0;
+    std::vector<BiomeCounts> biomeCounts;
 };
 
 const char* SpeciesName(Species species);

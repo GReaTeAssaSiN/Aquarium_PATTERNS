@@ -18,6 +18,8 @@ public:
     virtual void Draw(sf::RenderWindow& window) const = 0;
     // Prototype: returns a copy of this object placed at `position`.
     virtual std::unique_ptr<Decoration> Clone(Vector2 position) const = 0;
+    // Name of the biome family this concrete product belongs to (e.g. "Freshwater").
+    virtual const char* GetFamilyName() const = 0;
 
     Vector2 GetPosition() const { return position_; }
     void SetPosition(Vector2 position) { position_ = position; }

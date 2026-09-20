@@ -13,9 +13,9 @@ class IReportBuilder
 public:
     virtual ~IReportBuilder() = default;
 
-    virtual void BuildHeader(const std::string& biomeName, const std::string& date) = 0;
+    virtual void BuildHeader(const std::string& activeBiomeName, const std::string& date) = 0;
     virtual void BuildBody(const std::vector<FishInfo>& fish) = 0;
-    virtual void BuildFooter(std::size_t foodCount, std::size_t weedCount, std::size_t decorationCount) = 0;
+    virtual void BuildFooter(const std::vector<BiomeCounts>& biomeCounts) = 0;
     virtual std::string GetResult() const = 0;
 };
 

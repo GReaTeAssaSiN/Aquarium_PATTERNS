@@ -11,6 +11,7 @@ public:
 
     void Draw(sf::RenderWindow& window) const override;
     std::unique_ptr<Weed> Clone(Vector2 position) const override;
+    const char* GetFamilyName() const override { return "DeepSea"; }
 };
 
 #endif // DEEP_SEA_WEED_H_
