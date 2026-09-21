@@ -1,5 +1,6 @@
 #include "core/Scene.h"
 
+#include <algorithm>
 #include <cstdlib>
 
 #include "chain/FishContext.h"
@@ -49,12 +50,13 @@ void Scene::SwitchBiome(const AquariumFactory& factory)
     activeFactory_ = &factory;
 }
 
-void Scene::SpawnFish(Species species, Vector2 position)
+Fish* Scene::SpawnFish(Species species, Vector2 position)
 {
     entities_.push_back(activeFactory_->MakeFish(species, position));
+    return static_cast<Fish*>(entities_.back().get());
 }
 
-void Scene::SpawnShoal(Species species, Vector2 center, int count)
+Shoal* Scene::SpawnShoal(Species species, Vector2 center, int count)
 {
     auto shoal = std::make_unique<Shoal>();
     for (int i = 0; i < count; ++i)
@@ -62,22 +64,59 @@ void Scene::SpawnShoal(Species species, Vector2 center, int count)
         const Vector2 position{center.x + RandomOffset(20.f), center.y + RandomOffset(20.f)};
         shoal->Add(activeFactory_->MakeFish(species, position));
     }
+    Shoal* shoalPtr = shoal.get();
     entities_.push_back(std::move(shoal));
+    return shoalPtr;
 }
 
-void Scene::SpawnFood(Vector2 position)
+Food* Scene::SpawnFood(Vector2 position)
 {
     food_.push_back(activeFactory_->MakeFood(position));
+    return food_.back().get();
 }
 
-void Scene::SpawnWeed(Vector2 position)
+Weed* Scene::SpawnWeed(Vector2 position)
 {
     weed_.push_back(activeFactory_->MakeWeed(position));
+    return weed_.back().get();
 }
 
-void Scene::SpawnDecoration(Vector2 position)
+Decoration* Scene::SpawnDecoration(Vector2 position)
 {
     decoration_.push_back(activeFactory_->MakeDecoration(position));
+    return decoration_.back().get();
+}
+
+void Scene::RemoveEntity(AquaticEntity* entity)
+{
+    entities_.erase(
+        std::remove_if(entities_.begin(), entities_.end(),
+            [entity](const std::unique_ptr<AquaticEntity>& e) { return e.get() == entity; }),
+        entities_.end());
+}
+
+void Scene::RemoveFood(Food* food)
+{
+    food_.erase(
+        std::remove_if(food_.begin(), food_.end(),
+            [food](const std::unique_ptr<Food>& f) { return f.get() == food; }),
+        food_.end());
+}
+
+void Scene::RemoveWeed(Weed* weed)
+{
+    weed_.erase(
+        std::remove_if(weed_.begin(), weed_.end(),
+            [weed](const std::unique_ptr<Weed>& w) { return w.get() == weed; }),
+        weed_.end());
+}
+
+void Scene::RemoveDecoration(Decoration* decoration)
+{
+    decoration_.erase(
+        std::remove_if(decoration_.begin(), decoration_.end(),
+            [decoration](const std::unique_ptr<Decoration>& d) { return d.get() == decoration; }),
+        decoration_.end());
 }
 
 void Scene::Update(float dt)

@@ -26,12 +26,20 @@ public:
     void HandleResize(Vector2 newBounds);
     void SwitchBiome(const AquariumFactory& factory);
     const char* ActiveBiomeName() const { return activeFactory_->GetName(); }
+    const AquariumFactory& GetActiveFactory() const { return *activeFactory_; }
 
-    void SpawnFish(Species species, Vector2 position);
-    void SpawnShoal(Species species, Vector2 center, int count);
-    void SpawnFood(Vector2 position);
-    void SpawnWeed(Vector2 position);
-    void SpawnDecoration(Vector2 position);
+    // Each Spawn* returns the created object so a Command (Lab 7) can later
+    // remove that exact instance again via the matching Remove*.
+    Fish* SpawnFish(Species species, Vector2 position);
+    Shoal* SpawnShoal(Species species, Vector2 center, int count);
+    Food* SpawnFood(Vector2 position);
+    Weed* SpawnWeed(Vector2 position);
+    Decoration* SpawnDecoration(Vector2 position);
+
+    void RemoveEntity(AquaticEntity* entity); // removes a Fish or a Shoal
+    void RemoveFood(Food* food);
+    void RemoveWeed(Weed* weed);
+    void RemoveDecoration(Decoration* decoration);
 
     void Update(float dt);
     void Draw(sf::RenderWindow& window) const;

@@ -15,6 +15,14 @@
 #include "builders/ReportDirector.h"
 #include "builders/TxtReportBuilderCreator.h"
 #include "builders/XmlReportBuilderCreator.h"
+#include "commands/AddDecorationCommand.h"
+#include "commands/AddFishCommand.h"
+#include "commands/AddShoalCommand.h"
+#include "commands/AddWeedCommand.h"
+#include "commands/ChangeBiomeCommand.h"
+#include "commands/CommandHistory.h"
+#include "commands/FeedCommand.h"
+#include "commands/MacroCommand.h"
 #include "core/Scene.h"
 #include "factories/DeepSeaFactory.h"
 #include "factories/FreshwaterFactory.h"
@@ -37,6 +45,9 @@ std::string BuildHudText(const char* biomeName, const char* reportFormat,
            "S - spawn shoal of 5 fish\n"
            "E - switch report format\n"
            "R - export report\n"
+           "Z - undo\n"
+           "X - redo\n"
+           "P - apply aquascape preset (macro command)\n"
            "Esc - quit";
 
     if (!recentActions.empty())
@@ -98,6 +109,9 @@ int main()
     // Adapter (Lab 4): action journal (stack) and exported-report log (queue).
     ActionHistory actionHistory;
     ExportedReportsLog exportedReportsLog;
+
+    // Command (Lab 7): undo/redo history, built on the Lab 4 StackAdapter.
+    CommandHistory commandHistory;
 
     // On-screen HUD (biome/format status + controls + recent actions).
     sf::Font hudFont;
@@ -163,40 +177,55 @@ int main()
                 }
                 else if (keyPressed->code == sf::Keyboard::Key::B)
                 {
-                    activeBiomeIndex = (activeBiomeIndex + 1) % biomes.size();
-                    scene.SwitchBiome(*biomes[activeBiomeIndex]);
+                    std::size_t currentIndex = 0;
+                    for (std::size_t i = 0; i < biomes.size(); ++i)
+                    {
+                        if (biomes[i] == &scene.GetActiveFactory())
+                        {
+                            currentIndex = i;
+                            break;
+                        }
+                    }
+                    const std::size_t nextIndex = (currentIndex + 1) % biomes.size();
+                    commandHistory.Execute(
+                        std::make_unique<ChangeBiomeCommand>(scene, *biomes[nextIndex]));
                     actionHistory.Record(std::string("Switched biome to ") + scene.ActiveBiomeName());
                     refreshHud(scene.ActiveBiomeName(), reportCreators[activeFormatIndex]->GetFormatName());
                 }
                 else if (keyPressed->code == sf::Keyboard::Key::Space)
                 {
                     const Species species = RandomSpecies();
-                    scene.SpawnFish(species, {RandomInRange(bounds.x), RandomInRange(bounds.y)});
+                    commandHistory.Execute(std::make_unique<AddFishCommand>(
+                        scene, species, Vector2{RandomInRange(bounds.x), RandomInRange(bounds.y)}));
                     actionHistory.Record(std::string("Spawned ") + SpeciesName(species) + " fish in " +
                                           scene.ActiveBiomeName());
                     refreshHud(scene.ActiveBiomeName(), reportCreators[activeFormatIndex]->GetFormatName());
                 }
                 else if (keyPressed->code == sf::Keyboard::Key::F)
                 {
-                    scene.SpawnFood({RandomInRange(bounds.x), RandomInRange(bounds.y)});
+                    commandHistory.Execute(std::make_unique<FeedCommand>(
+                        scene, Vector2{RandomInRange(bounds.x), RandomInRange(bounds.y)}));
                     actionHistory.Record(std::string("Spawned food in ") + scene.ActiveBiomeName());
                     refreshHud(scene.ActiveBiomeName(), reportCreators[activeFormatIndex]->GetFormatName());
                 }
                 else if (keyPressed->code == sf::Keyboard::Key::W)
                 {
-                    scene.SpawnWeed({RandomInRange(bounds.x), bounds.y});
+                    commandHistory.Execute(
+                        std::make_unique<AddWeedCommand>(scene, Vector2{RandomInRange(bounds.x), bounds.y}));
                     actionHistory.Record(std::string("Spawned weed in ") + scene.ActiveBiomeName());
                     refreshHud(scene.ActiveBiomeName(), reportCreators[activeFormatIndex]->GetFormatName());
                 }
                 else if (keyPressed->code == sf::Keyboard::Key::D)
                 {
-                    scene.SpawnDecoration({RandomInRange(bounds.x), bounds.y});
+                    commandHistory.Execute(std::make_unique<AddDecorationCommand>(
+                        scene, Vector2{RandomInRange(bounds.x), bounds.y}));
                     actionHistory.Record(std::string("Spawned decoration in ") + scene.ActiveBiomeName());
                     refreshHud(scene.ActiveBiomeName(), reportCreators[activeFormatIndex]->GetFormatName());
                 }
                 else if (keyPressed->code == sf::Keyboard::Key::S)
                 {
-                    scene.SpawnShoal(Species::Common, {RandomInRange(bounds.x), RandomInRange(bounds.y)}, 5);
+                    commandHistory.Execute(std::make_unique<AddShoalCommand>(
+                        scene, Species::Common, Vector2{RandomInRange(bounds.x), RandomInRange(bounds.y)}, 5));
                     actionHistory.Record(std::string("Spawned a shoal of 5 fish in ") + scene.ActiveBiomeName());
                     refreshHud(scene.ActiveBiomeName(), reportCreators[activeFormatIndex]->GetFormatName());
                 }
@@ -229,6 +258,38 @@ int main()
                     file << report;
 
                     actionHistory.Record("Exported report: " + filename);
+                    refreshHud(scene.ActiveBiomeName(), reportCreators[activeFormatIndex]->GetFormatName());
+                }
+                else if (keyPressed->code == sf::Keyboard::Key::Z)
+                {
+                    const std::string undone = commandHistory.Undo();
+                    if (!undone.empty())
+                        actionHistory.Record("Undo: " + undone);
+                    refreshHud(scene.ActiveBiomeName(), reportCreators[activeFormatIndex]->GetFormatName());
+                }
+                else if (keyPressed->code == sf::Keyboard::Key::X)
+                {
+                    const std::string redone = commandHistory.Redo();
+                    if (!redone.empty())
+                        actionHistory.Record("Redo: " + redone);
+                    refreshHud(scene.ActiveBiomeName(), reportCreators[activeFormatIndex]->GetFormatName());
+                }
+                else if (keyPressed->code == sf::Keyboard::Key::P)
+                {
+                    // MacroCommand: several spawn commands applied - and undone - as a single step.
+                    std::vector<std::unique_ptr<ICommand>> preset;
+                    preset.push_back(std::make_unique<AddWeedCommand>(
+                        scene, Vector2{RandomInRange(bounds.x), bounds.y}));
+                    preset.push_back(std::make_unique<AddWeedCommand>(
+                        scene, Vector2{RandomInRange(bounds.x), bounds.y}));
+                    preset.push_back(std::make_unique<AddDecorationCommand>(
+                        scene, Vector2{RandomInRange(bounds.x), bounds.y}));
+                    preset.push_back(std::make_unique<AddDecorationCommand>(
+                        scene, Vector2{RandomInRange(bounds.x), bounds.y}));
+
+                    commandHistory.Execute(
+                        std::make_unique<MacroCommand>(std::move(preset), "aquascape preset (2 weeds + 2 decorations)"));
+                    actionHistory.Record(std::string("Applied aquascape preset in ") + scene.ActiveBiomeName());
                     refreshHud(scene.ActiveBiomeName(), reportCreators[activeFormatIndex]->GetFormatName());
                 }
             }
