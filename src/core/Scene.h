@@ -5,6 +5,8 @@
 #include <vector>
 
 #include "builders/ReportData.h"
+#include "composite/Shoal.h"
+#include "core/AquaticEntity.h"
 #include "core/Vector2.h"
 #include "creatures/Decoration.h"
 #include "creatures/Fish.h"
@@ -26,6 +28,7 @@ public:
     const char* ActiveBiomeName() const { return activeFactory_->GetName(); }
 
     void SpawnFish(Species species, Vector2 position);
+    void SpawnShoal(Species species, Vector2 center, int count);
     void SpawnFood(Vector2 position);
     void SpawnWeed(Vector2 position);
     void SpawnDecoration(Vector2 position);
@@ -38,7 +41,7 @@ public:
 private:
     Vector2 bounds_;
     const AquariumFactory* activeFactory_;
-    std::vector<std::unique_ptr<Fish>> fish_;
+    std::vector<std::unique_ptr<AquaticEntity>> entities_;
     std::vector<std::unique_ptr<Food>> food_;
     std::vector<std::unique_ptr<Weed>> weed_;
     std::vector<std::unique_ptr<Decoration>> decoration_;

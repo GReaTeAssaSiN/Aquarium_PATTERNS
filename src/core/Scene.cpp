@@ -1,5 +1,7 @@
 #include "core/Scene.h"
 
+#include <cstdlib>
+
 namespace
 {
 BiomeCounts& FindOrCreateBiomeCounts(std::vector<BiomeCounts>& counts, const std::string& biomeName)
@@ -12,6 +14,12 @@ BiomeCounts& FindOrCreateBiomeCounts(std::vector<BiomeCounts>& counts, const std
     counts.push_back({biomeName});
     return counts.back();
 }
+
+// A small random offset in [-range, range], used to cluster a shoal's fish around one point.
+float RandomOffset(float range)
+{
+    return (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 2.f - 1.f) * range;
+}
 }
 
 Scene::Scene(Vector2 bounds, const AquariumFactory& initialFactory)
@@ -22,8 +30,8 @@ void Scene::HandleResize(Vector2 newBounds)
     const float scaleX = newBounds.x / bounds_.x;
     const float scaleY = newBounds.y / bounds_.y;
 
-    for (auto& fish : fish_)
-        fish->SetPosition({fish->GetPosition().x * scaleX, fish->GetPosition().y * scaleY});
+    for (auto& entity : entities_)
+        entity->RescalePosition(scaleX, scaleY);
     for (auto& food : food_)
         food->SetPosition({food->GetPosition().x * scaleX, food->GetPosition().y * scaleY});
     for (auto& weed : weed_)
@@ -41,7 +49,18 @@ void Scene::SwitchBiome(const AquariumFactory& factory)
 
 void Scene::SpawnFish(Species species, Vector2 position)
 {
-    fish_.push_back(activeFactory_->MakeFish(species, position));
+    entities_.push_back(activeFactory_->MakeFish(species, position));
+}
+
+void Scene::SpawnShoal(Species species, Vector2 center, int count)
+{
+    auto shoal = std::make_unique<Shoal>();
+    for (int i = 0; i < count; ++i)
+    {
+        const Vector2 position{center.x + RandomOffset(20.f), center.y + RandomOffset(20.f)};
+        shoal->Add(activeFactory_->MakeFish(species, position));
+    }
+    entities_.push_back(std::move(shoal));
 }
 
 void Scene::SpawnFood(Vector2 position)
@@ -61,8 +80,8 @@ void Scene::SpawnDecoration(Vector2 position)
 
 void Scene::Update(float dt)
 {
-    for (auto& fish : fish_)
-        fish->Update(dt, bounds_);
+    for (auto& entity : entities_)
+        entity->Update(dt, bounds_);
 }
 
 void Scene::Draw(sf::RenderWindow& window) const
@@ -73,8 +92,8 @@ void Scene::Draw(sf::RenderWindow& window) const
         weed->Draw(window);
     for (const auto& food : food_)
         food->Draw(window);
-    for (const auto& fish : fish_)
-        fish->Draw(window);
+    for (const auto& entity : entities_)
+        entity->Draw(window);
 }
 
 ReportData Scene::GetReportData() const
@@ -82,13 +101,13 @@ ReportData Scene::GetReportData() const
     ReportData data;
     data.activeBiomeName = activeFactory_->GetName();
 
-    for (const auto& fish : fish_)
-    {
-        const std::string biomeName = fish->GetFamilyName();
-        data.fish.push_back({fish->GetSpecies(), fish->GetPosition(), biomeName});
+    for (const auto& entity : entities_)
+        entity->CollectFishInfo(data.fish);
 
-        BiomeCounts& counts = FindOrCreateBiomeCounts(data.biomeCounts, biomeName);
-        switch (fish->GetSpecies())
+    for (const auto& fish : data.fish)
+    {
+        BiomeCounts& counts = FindOrCreateBiomeCounts(data.biomeCounts, fish.biomeName);
+        switch (fish.species)
         {
             case Species::Predator: counts.predatorFish++; break;
             case Species::Prey: counts.preyFish++; break;

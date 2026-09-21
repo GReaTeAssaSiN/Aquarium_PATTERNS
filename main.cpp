@@ -34,6 +34,7 @@ std::string BuildHudText(const char* biomeName, const char* reportFormat,
            "F - spawn food\n"
            "W - spawn weed\n"
            "D - spawn decoration\n"
+           "S - spawn shoal of 5 fish\n"
            "E - switch report format\n"
            "R - export report";
 
@@ -186,6 +187,12 @@ int main()
                 {
                     scene.SpawnDecoration({RandomInRange(bounds.x), bounds.y});
                     actionHistory.Record(std::string("Spawned decoration in ") + scene.ActiveBiomeName());
+                    refreshHud(scene.ActiveBiomeName(), reportCreators[activeFormatIndex]->GetFormatName());
+                }
+                else if (keyPressed->code == sf::Keyboard::Key::S)
+                {
+                    scene.SpawnShoal(Species::Common, {RandomInRange(bounds.x), RandomInRange(bounds.y)}, 5);
+                    actionHistory.Record(std::string("Spawned a shoal of 5 fish in ") + scene.ActiveBiomeName());
                     refreshHud(scene.ActiveBiomeName(), reportCreators[activeFormatIndex]->GetFormatName());
                 }
                 else if (keyPressed->code == sf::Keyboard::Key::E)
