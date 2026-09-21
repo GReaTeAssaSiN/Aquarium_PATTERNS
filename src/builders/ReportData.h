@@ -14,6 +14,7 @@ struct FishInfo
     Species species;
     Vector2 position;
     std::string biomeName;
+    Vector2 heading; // direction this fish moved last frame; used by FlockingHandler (Lab 6)
 };
 
 // Per-biome breakdown: how many of each inhabitant currently belong to one family.

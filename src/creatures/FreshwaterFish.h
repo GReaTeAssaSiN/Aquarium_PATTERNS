@@ -9,14 +9,12 @@ class FreshwaterFish : public Fish
 public:
     FreshwaterFish(Species species, Vector2 position);
 
-    void Update(float dt, Vector2 bounds) override;
     void Draw(sf::RenderWindow& window) const override;
     std::unique_ptr<Fish> Clone(Vector2 position) const override;
     const char* GetFamilyName() const override { return "Freshwater"; }
 
 private:
     float radius_;
-    float speed_;
 };
 
 #endif // FRESHWATER_FISH_H_

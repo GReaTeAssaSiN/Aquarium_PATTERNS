@@ -36,7 +36,8 @@ std::string BuildHudText(const char* biomeName, const char* reportFormat,
            "D - spawn decoration\n"
            "S - spawn shoal of 5 fish\n"
            "E - switch report format\n"
-           "R - export report";
+           "R - export report\n"
+           "Esc - quit";
 
     if (!recentActions.empty())
     {
@@ -156,7 +157,11 @@ int main()
             // Every branch below spawns/changes something, then records it and refreshes the HUD.
             if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
             {
-                if (keyPressed->code == sf::Keyboard::Key::B)
+                if (keyPressed->code == sf::Keyboard::Key::Escape)
+                {
+                    window.close();
+                }
+                else if (keyPressed->code == sf::Keyboard::Key::B)
                 {
                     activeBiomeIndex = (activeBiomeIndex + 1) % biomes.size();
                     scene.SwitchBiome(*biomes[activeBiomeIndex]);

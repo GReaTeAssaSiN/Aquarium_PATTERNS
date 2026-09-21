@@ -14,14 +14,7 @@ float SizeForSpecies(Species species)
 }
 
 DeepSeaFish::DeepSeaFish(Species species, Vector2 position)
-    : Fish(species, position), size_(SizeForSpecies(species)), speed_(25.f) {}
-
-void DeepSeaFish::Update(float dt, Vector2 bounds)
-{
-    position_.y -= speed_ * dt;
-    if (position_.y + size_ < 0.f)
-        position_.y = bounds.y + size_;
-}
+    : Fish(species, position, 25.f), size_(SizeForSpecies(species)) {}
 
 void DeepSeaFish::Draw(sf::RenderWindow& window) const
 {

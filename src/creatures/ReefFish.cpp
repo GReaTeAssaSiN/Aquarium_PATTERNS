@@ -14,14 +14,7 @@ float SizeForSpecies(Species species)
 }
 
 ReefFish::ReefFish(Species species, Vector2 position)
-    : Fish(species, position), size_(SizeForSpecies(species)), speed_(35.f) {}
-
-void ReefFish::Update(float dt, Vector2 bounds)
-{
-    position_.x -= speed_ * dt;
-    if (position_.x + size_ < 0.f)
-        position_.x = bounds.x + size_;
-}
+    : Fish(species, position, 35.f), size_(SizeForSpecies(species)) {}
 
 void ReefFish::Draw(sf::RenderWindow& window) const
 {

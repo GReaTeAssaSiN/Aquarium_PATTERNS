@@ -19,10 +19,14 @@ enum class Species
 class Fish : public AquaticEntity
 {
 public:
-    Fish(Species species, Vector2 position) : species_(species), position_(position) {}
+    Fish(Species species, Vector2 position, float speed)
+        : species_(species), position_(position), speed_(speed) {}
     virtual ~Fish() = default;
 
-    void Update(float dt, Vector2 bounds) override = 0;
+    // Defined in Fish.cpp: runs the decision chain (Chain of Responsibility),
+    // then moves and wraps this fish accordingly. Shared by every concrete
+    // fish — none of them override Update anymore.
+    void Update(float dt, const FishContext& context) override;
     void Draw(sf::RenderWindow& window) const override = 0;
     // Prototype: returns a copy of this object placed at `position`.
     virtual std::unique_ptr<Fish> Clone(Vector2 position) const = 0;
@@ -41,10 +45,13 @@ public:
     Species GetSpecies() const { return species_; }
     Vector2 GetPosition() const { return position_; }
     void SetPosition(Vector2 position) { position_ = position; }
+    Vector2 GetHeading() const { return heading_; }
 
 protected:
     Species species_;
     Vector2 position_;
+    Vector2 heading_{1.f, 0.f};
+    float speed_;
 };
 
 #endif // FISH_H_

@@ -13,7 +13,7 @@ class Shoal : public AquaticEntity
 public:
     void Add(std::unique_ptr<AquaticEntity> entity);
 
-    void Update(float dt, Vector2 bounds) override;
+    void Update(float dt, const FishContext& context) override;
     void Draw(sf::RenderWindow& window) const override;
     void RescalePosition(float scaleX, float scaleY) override;
     void CollectFishInfo(std::vector<FishInfo>& out) const override;

@@ -14,14 +14,7 @@ float RadiusForSpecies(Species species)
 }
 
 FreshwaterFish::FreshwaterFish(Species species, Vector2 position)
-    : Fish(species, position), radius_(RadiusForSpecies(species)), speed_(40.f) {}
-
-void FreshwaterFish::Update(float dt, Vector2 bounds)
-{
-    position_.x += speed_ * dt;
-    if (position_.x - radius_ > bounds.x)
-        position_.x = -radius_;
-}
+    : Fish(species, position, 40.f), radius_(RadiusForSpecies(species)) {}
 
 void FreshwaterFish::Draw(sf::RenderWindow& window) const
 {

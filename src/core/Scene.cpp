@@ -2,6 +2,8 @@
 
 #include <cstdlib>
 
+#include "chain/FishContext.h"
+
 namespace
 {
 BiomeCounts& FindOrCreateBiomeCounts(std::vector<BiomeCounts>& counts, const std::string& biomeName)
@@ -80,8 +82,29 @@ void Scene::SpawnDecoration(Vector2 position)
 
 void Scene::Update(float dt)
 {
+    // Built fresh every frame, unfiltered, and shared by every fish (even ones
+    // nested inside a Shoal) — each handler filters by distance from its own
+    // fish's actual position, so one shared snapshot is enough and correct.
+    FishContext context;
+    context.bounds = bounds_;
+
+    std::vector<FishInfo> allFish;
+    for (const auto& entity : entities_)
+        entity->CollectFishInfo(allFish);
+    context.neighbors = allFish;
+
+    for (const auto& fish : allFish)
+    {
+        if (fish.species == Species::Predator)
+            context.predatorPositions.push_back(fish.position);
+    }
+    for (const auto& food : food_)
+        context.foodPositions.push_back(food->GetPosition());
+    for (const auto& weed : weed_)
+        context.weedPositions.push_back(weed->GetPosition());
+
     for (auto& entity : entities_)
-        entity->Update(dt, bounds_);
+        entity->Update(dt, context);
 }
 
 void Scene::Draw(sf::RenderWindow& window) const
