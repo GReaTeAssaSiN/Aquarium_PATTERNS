@@ -17,6 +17,8 @@ public:
     void Draw(sf::RenderWindow& window) const override;
     void RescalePosition(float scaleX, float scaleY) override;
     void CollectFishInfo(std::vector<FishInfo>& out) const override;
+    void CollectFish(std::vector<Fish*>& out) override;
+    bool RemoveMember(AquaticEntity* target) override;
 
 private:
     std::vector<std::unique_ptr<AquaticEntity>> members_;

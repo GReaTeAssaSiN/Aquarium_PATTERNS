@@ -106,10 +106,19 @@ Decoration* Scene::SpawnDecoration(Vector2 position)
 
 void Scene::RemoveEntity(AquaticEntity* entity)
 {
-    entities_.erase(
-        std::remove_if(entities_.begin(), entities_.end(),
-            [entity](const std::unique_ptr<AquaticEntity>& e) { return e.get() == entity; }),
-        entities_.end());
+    const auto it = std::remove_if(entities_.begin(), entities_.end(),
+        [entity](const std::unique_ptr<AquaticEntity>& e) { return e.get() == entity; });
+    if (it != entities_.end())
+    {
+        entities_.erase(it, entities_.end());
+        return;
+    }
+    // Not a top-level entity - it may be a Fish grouped into a Shoal.
+    for (auto& e : entities_)
+    {
+        if (e->RemoveMember(entity))
+            return;
+    }
 }
 
 void Scene::RemoveFood(Food* food)
@@ -144,42 +153,44 @@ void Scene::Update(float dt)
     FishContext context;
     context.bounds = bounds_;
 
-    std::vector<FishInfo> allFish;
+    std::vector<FishInfo> allFishInfo;
     for (const auto& entity : entities_)
-        entity->CollectFishInfo(allFish);
-    context.neighbors = allFish;
+        entity->CollectFishInfo(allFishInfo);
+    context.neighbors = allFishInfo;
 
-    for (const auto& fish : allFish)
+    // Live pointers (not snapshots) to every fish, including ones grouped
+    // into a Shoal - needed so hunting/eating can act on them directly.
+    std::vector<Fish*> allFish;
+    for (const auto& entity : entities_)
+        entity->CollectFish(allFish);
+
+    for (Fish* fish : allFish)
     {
-        if (fish.species == Species::Predator)
-            context.predatorPositions.push_back(fish.position);
+        if (fish->GetSpecies() == Species::Predator)
+            context.predatorPositions.push_back(fish->GetPosition());
     }
     for (const auto& food : food_)
         context.food.push_back({food->GetPosition(), food->GetFamilyName()});
     for (const auto& weed : weed_)
         context.weedPositions.push_back(weed->GetPosition());
-    for (const auto& entity : entities_)
+    for (Fish* fish : allFish)
     {
-        if (Fish* fish = entity->AsFish(); fish && fish->GetSpecies() != Species::Predator &&
-            !IsSheltered(fish->GetPosition()))
+        if (fish->GetSpecies() != Species::Predator && !IsSheltered(fish->GetPosition()))
             context.huntablePrey.push_back(fish->GetPosition());
     }
 
     for (auto& entity : entities_)
         entity->Update(dt, context);
 
-    HandleEating();
+    HandleEating(allFish);
 }
 
-void Scene::HandleEating()
+void Scene::HandleEating(const std::vector<Fish*>& allFish)
 {
-    // A fish (any species) eats food from its own biome by swimming onto it.
-    for (const auto& entity : entities_)
+    // A fish (any species) eats food from its own biome by swimming onto it -
+    // whether it's a top-level entity or grouped into a Shoal.
+    for (Fish* fish : allFish)
     {
-        Fish* fish = entity->AsFish();
-        if (!fish)
-            continue;
-
         food_.erase(
             std::remove_if(food_.begin(), food_.end(),
                 [fish](const std::unique_ptr<Food>& food)
@@ -193,29 +204,31 @@ void Scene::HandleEating()
     // Predators hunt any non-predator fish in range, regardless of biome
     // (see the comment on FishContext::predatorPositions for why).
     std::vector<Vector2> predatorPositions;
-    for (const auto& entity : entities_)
+    for (Fish* fish : allFish)
     {
-        if (Fish* fish = entity->AsFish(); fish && fish->GetSpecies() == Species::Predator)
+        if (fish->GetSpecies() == Species::Predator)
             predatorPositions.push_back(fish->GetPosition());
     }
 
-    entities_.erase(
-        std::remove_if(entities_.begin(), entities_.end(),
-            [&predatorPositions, this](const std::unique_ptr<AquaticEntity>& entity)
+    // Collected first, then removed one at a time (via RemoveEntity, which
+    // reaches into a Shoal if needed) - unlike food_ above, entities_ can't
+    // use one erase-remove pass here, since a caught fish might live inside
+    // a Shoal rather than directly in entities_.
+    for (Fish* fish : allFish)
+    {
+        if (fish->GetSpecies() == Species::Predator)
+            continue;
+        if (IsSheltered(fish->GetPosition())) // hiding in weed protects from being eaten too
+            continue;
+        for (const auto& predatorPosition : predatorPositions)
+        {
+            if ((predatorPosition - fish->GetPosition()).Length() < kPredatorEatRadius)
             {
-                Fish* fish = entity->AsFish();
-                if (!fish || fish->GetSpecies() == Species::Predator)
-                    return false;
-                if (IsSheltered(fish->GetPosition())) // hiding in weed protects from being eaten too
-                    return false;
-                for (const auto& predatorPosition : predatorPositions)
-                {
-                    if ((predatorPosition - fish->GetPosition()).Length() < kPredatorEatRadius)
-                        return true;
-                }
-                return false;
-            }),
-        entities_.end());
+                RemoveEntity(fish);
+                break;
+            }
+        }
+    }
 }
 
 bool Scene::IsSheltered(Vector2 position) const

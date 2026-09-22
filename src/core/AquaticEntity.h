@@ -30,10 +30,18 @@ public:
     virtual void RescalePosition(float scaleX, float scaleY) = 0;
     virtual void CollectFishInfo(std::vector<FishInfo>& out) const = 0;
 
-    // Safe downcast for eating mechanics (Scene): a single Fish returns
-    // itself, a Shoal (or anything else) returns nullptr - only top-level
-    // fish, not ones grouped into a Shoal, can eat or be eaten.
-    virtual Fish* AsFish() { return nullptr; }
+    // Live equivalent of CollectFishInfo: appends actual Fish* pointers (not
+    // snapshots) that Scene can act on - eat, remove, etc. A single Fish
+    // appends itself; a Shoal appends each of its members.
+    virtual void CollectFish(std::vector<Fish*>& out) = 0;
+
+    // Composite child-management, transparently on the base interface (GoF's
+    // "transparent" Composite style): tries to remove `target` from this
+    // entity's own children and reports whether it was found here. A leaf
+    // (Fish) has no children, so it's always false. A Shoal searches its
+    // members_ and erases a match. Lets Scene::RemoveEntity reach a fish
+    // nested inside a Shoal without needing to know that's where it lives.
+    virtual bool RemoveMember(AquaticEntity*) { return false; }
 };
 
 #endif // AQUATIC_ENTITY_H_

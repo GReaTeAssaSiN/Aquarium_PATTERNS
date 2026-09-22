@@ -36,7 +36,10 @@ public:
     Weed* SpawnWeed(Vector2 position);
     Decoration* SpawnDecoration(Vector2 position);
 
-    void RemoveEntity(AquaticEntity* entity); // removes a Fish or a Shoal
+    // Removes a Fish or a Shoal. If `entity` isn't a top-level entity (e.g. a
+    // Fish grouped into a Shoal), falls back to asking each entity to remove
+    // it from its own children (AquaticEntity::RemoveMember).
+    void RemoveEntity(AquaticEntity* entity);
     void RemoveFood(Food* food);
     void RemoveWeed(Weed* weed);
     void RemoveDecoration(Decoration* decoration);
@@ -47,10 +50,10 @@ public:
     ReportData GetReportData() const;
 
 private:
-    // Fish eat same-biome food and predators eat non-predator fish on contact.
-    // Only entities directly in entities_ participate - fish grouped into a
-    // Shoal are exempt (AsFish() returns nullptr for Shoal, see AquaticEntity).
-    void HandleEating();
+    // Fish eat same-biome food and predators eat non-predator fish on contact,
+    // whether the fish is a top-level entity or grouped into a Shoal - the
+    // caller (Update) already collected every live Fish* via CollectFish.
+    void HandleEating(const std::vector<Fish*>& allFish);
 
     // True if a fish at this position is close enough to any weed to count
     // as hidden (matches WeedHidingHandler's own shelter radius). Hidden
