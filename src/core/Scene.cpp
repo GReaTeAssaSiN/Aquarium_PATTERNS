@@ -23,6 +23,9 @@ float RandomOffset(float range)
 {
     return (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 2.f - 1.f) * range;
 }
+
+constexpr float kFoodEatRadius = 25.f;
+constexpr float kPredatorEatRadius = 35.f;
 }
 
 Scene::Scene(Vector2 bounds, const AquariumFactory& initialFactory)
@@ -138,12 +141,59 @@ void Scene::Update(float dt)
             context.predatorPositions.push_back(fish.position);
     }
     for (const auto& food : food_)
-        context.foodPositions.push_back(food->GetPosition());
+        context.food.push_back({food->GetPosition(), food->GetFamilyName()});
     for (const auto& weed : weed_)
         context.weedPositions.push_back(weed->GetPosition());
 
     for (auto& entity : entities_)
         entity->Update(dt, context);
+
+    HandleEating();
+}
+
+void Scene::HandleEating()
+{
+    // A fish (any species) eats food from its own biome by swimming onto it.
+    for (const auto& entity : entities_)
+    {
+        Fish* fish = entity->AsFish();
+        if (!fish)
+            continue;
+
+        food_.erase(
+            std::remove_if(food_.begin(), food_.end(),
+                [fish](const std::unique_ptr<Food>& food)
+                {
+                    return std::string(food->GetFamilyName()) == fish->GetFamilyName() &&
+                           (food->GetPosition() - fish->GetPosition()).Length() < kFoodEatRadius;
+                }),
+            food_.end());
+    }
+
+    // Predators hunt any non-predator fish in range, regardless of biome
+    // (see the comment on FishContext::predatorPositions for why).
+    std::vector<Vector2> predatorPositions;
+    for (const auto& entity : entities_)
+    {
+        if (Fish* fish = entity->AsFish(); fish && fish->GetSpecies() == Species::Predator)
+            predatorPositions.push_back(fish->GetPosition());
+    }
+
+    entities_.erase(
+        std::remove_if(entities_.begin(), entities_.end(),
+            [&predatorPositions](const std::unique_ptr<AquaticEntity>& entity)
+            {
+                Fish* fish = entity->AsFish();
+                if (!fish || fish->GetSpecies() == Species::Predator)
+                    return false;
+                for (const auto& predatorPosition : predatorPositions)
+                {
+                    if ((predatorPosition - fish->GetPosition()).Length() < kPredatorEatRadius)
+                        return true;
+                }
+                return false;
+            }),
+        entities_.end());
 }
 
 void Scene::Draw(sf::RenderWindow& window) const

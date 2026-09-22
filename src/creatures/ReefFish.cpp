@@ -11,6 +11,18 @@ float SizeForSpecies(Species species)
         default: return 16.f;
     }
 }
+
+// Same teal family for every Reef fish, shaded by species: darker for
+// Predator, paler for Prey, plain for Common.
+sf::Color ColorForSpecies(Species species)
+{
+    switch (species)
+    {
+        case Species::Predator: return sf::Color(0, 130, 150);
+        case Species::Prey: return sf::Color(150, 235, 235);
+        default: return sf::Color(0, 200, 210);
+    }
+}
 }
 
 ReefFish::ReefFish(Species species, Vector2 position)
@@ -22,7 +34,7 @@ void ReefFish::Draw(sf::RenderWindow& window) const
     triangle.setPoint(0, {size_, 0.f});
     triangle.setPoint(1, {-size_, -size_ * 0.6f});
     triangle.setPoint(2, {-size_, size_ * 0.6f});
-    triangle.setFillColor(sf::Color(0, 200, 210));
+    triangle.setFillColor(ColorForSpecies(species_));
     triangle.setPosition({position_.x, position_.y});
     window.draw(triangle);
 }

@@ -41,6 +41,7 @@ public:
     // Defined in Fish.cpp, not here: the body needs the complete FishInfo type
     // (builders/ReportData.h), which this header cannot include (see AquaticEntity.h).
     void CollectFishInfo(std::vector<FishInfo>& out) const override;
+    Fish* AsFish() override { return this; }
 
     Species GetSpecies() const { return species_; }
     Vector2 GetPosition() const { return position_; }

@@ -47,6 +47,11 @@ public:
     ReportData GetReportData() const;
 
 private:
+    // Fish eat same-biome food and predators eat non-predator fish on contact.
+    // Only entities directly in entities_ participate - fish grouped into a
+    // Shoal are exempt (AsFish() returns nullptr for Shoal, see AquaticEntity).
+    void HandleEating();
+
     Vector2 bounds_;
     const AquariumFactory* activeFactory_;
     std::vector<std::unique_ptr<AquaticEntity>> entities_;

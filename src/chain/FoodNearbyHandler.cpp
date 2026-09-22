@@ -7,9 +7,11 @@ constexpr float kDetectionRadius = 100.f;
 
 bool FoodNearbyHandler::CanHandle(const Fish& fish, const FishContext& context) const
 {
-    for (const auto& foodPosition : context.foodPositions)
+    for (const auto& food : context.food)
     {
-        if ((foodPosition - fish.GetPosition()).Length() < kDetectionRadius)
+        if (food.biomeName != fish.GetFamilyName())
+            continue;
+        if ((food.position - fish.GetPosition()).Length() < kDetectionRadius)
             return true;
     }
     return false;
@@ -19,13 +21,15 @@ Vector2 FoodNearbyHandler::Decide(const Fish& fish, const FishContext& context) 
 {
     Vector2 nearest;
     float nearestDistance = -1.f;
-    for (const auto& foodPosition : context.foodPositions)
+    for (const auto& food : context.food)
     {
-        const float distance = (foodPosition - fish.GetPosition()).Length();
+        if (food.biomeName != fish.GetFamilyName())
+            continue;
+        const float distance = (food.position - fish.GetPosition()).Length();
         if (nearestDistance < 0.f || distance < nearestDistance)
         {
             nearestDistance = distance;
-            nearest = foodPosition;
+            nearest = food.position;
         }
     }
     const Vector2 toward = (nearest - fish.GetPosition()).Normalized();
