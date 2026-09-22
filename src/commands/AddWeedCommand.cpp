@@ -9,10 +9,11 @@ void AddWeedCommand::Execute()
     weed_ = scene_.SpawnWeed(position_);
 }
 
-void AddWeedCommand::Undo()
+bool AddWeedCommand::Undo()
 {
-    scene_.RemoveWeed(weed_);
+    const bool removed = scene_.RemoveWeed(weed_);
     weed_ = nullptr;
+    return removed;
 }
 
 std::string AddWeedCommand::Description() const

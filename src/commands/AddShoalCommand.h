@@ -11,7 +11,7 @@ public:
     AddShoalCommand(Scene& scene, Species species, Vector2 center, int count);
 
     void Execute() override;
-    void Undo() override;
+    bool Undo() override;
     std::string Description() const override;
 
 private:

@@ -38,11 +38,13 @@ public:
 
     // Removes a Fish or a Shoal. If `entity` isn't a top-level entity (e.g. a
     // Fish grouped into a Shoal), falls back to asking each entity to remove
-    // it from its own children (AquaticEntity::RemoveMember).
-    void RemoveEntity(AquaticEntity* entity);
-    void RemoveFood(Food* food);
-    void RemoveWeed(Weed* weed);
-    void RemoveDecoration(Decoration* decoration);
+    // it from its own children (AquaticEntity::RemoveMember). Returns false
+    // if `entity` wasn't found anywhere - e.g. a Command's Undo() calling
+    // this on a fish the ecosystem already ate itself.
+    bool RemoveEntity(AquaticEntity* entity);
+    bool RemoveFood(Food* food);
+    bool RemoveWeed(Weed* weed);
+    bool RemoveDecoration(Decoration* decoration);
 
     void Update(float dt);
     void Draw(sf::RenderWindow& window) const;

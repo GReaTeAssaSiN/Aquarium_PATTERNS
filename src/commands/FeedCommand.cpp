@@ -9,10 +9,11 @@ void FeedCommand::Execute()
     food_ = scene_.SpawnFood(position_);
 }
 
-void FeedCommand::Undo()
+bool FeedCommand::Undo()
 {
-    scene_.RemoveFood(food_);
+    const bool removed = scene_.RemoveFood(food_);
     food_ = nullptr;
+    return removed;
 }
 
 std::string FeedCommand::Description() const

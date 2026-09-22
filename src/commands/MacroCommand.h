@@ -15,7 +15,10 @@ public:
     MacroCommand(std::vector<std::unique_ptr<ICommand>> commands, std::string description);
 
     void Execute() override;
-    void Undo() override;
+    // Every sub-command's Undo() always runs (best-effort), regardless of
+    // whether an earlier one found nothing to undo. Returns true only if
+    // every single one of them actually undid something.
+    bool Undo() override;
     std::string Description() const override;
 
 private:

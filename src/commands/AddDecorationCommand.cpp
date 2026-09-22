@@ -9,10 +9,11 @@ void AddDecorationCommand::Execute()
     decoration_ = scene_.SpawnDecoration(position_);
 }
 
-void AddDecorationCommand::Undo()
+bool AddDecorationCommand::Undo()
 {
-    scene_.RemoveDecoration(decoration_);
+    const bool removed = scene_.RemoveDecoration(decoration_);
     decoration_ = nullptr;
+    return removed;
 }
 
 std::string AddDecorationCommand::Description() const

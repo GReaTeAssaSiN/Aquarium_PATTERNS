@@ -11,10 +11,11 @@ void AddFishCommand::Execute()
     fish_ = scene_.SpawnFish(species_, position_);
 }
 
-void AddFishCommand::Undo()
+bool AddFishCommand::Undo()
 {
-    scene_.RemoveEntity(fish_);
+    const bool removed = scene_.RemoveEntity(fish_);
     fish_ = nullptr;
+    return removed;
 }
 
 std::string AddFishCommand::Description() const

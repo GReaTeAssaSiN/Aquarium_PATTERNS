@@ -14,10 +14,16 @@ std::string CommandHistory::Undo()
         return "";
     }
     std::unique_ptr<ICommand> command = undoStack_.Pop();
-    command->Undo();
+    const bool succeeded = command->Undo();
     const std::string description = command->Description();
-    redoStack_.Push(std::move(command));
-    return description;
+    if (succeeded)
+    {
+        redoStack_.Push(std::move(command));
+        return description;
+    }
+    // Target already gone (e.g. eaten) - nothing left to redo either, so
+    // the command is simply dropped here instead of moving to redoStack_.
+    return description + " (already gone, nothing to undo)";
 }
 
 std::string CommandHistory::Redo()

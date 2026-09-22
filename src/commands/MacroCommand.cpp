@@ -11,12 +11,16 @@ void MacroCommand::Execute()
     }
 }
 
-void MacroCommand::Undo()
+bool MacroCommand::Undo()
 {
+    bool allSucceeded = true;
     for (auto it = commands_.rbegin(); it != commands_.rend(); ++it)
     {
-        (*it)->Undo();
+        // (*it)->Undo() must run unconditionally, so don't let && short-circuit it.
+        const bool succeeded = (*it)->Undo();
+        allSucceeded = allSucceeded && succeeded;
     }
+    return allSucceeded;
 }
 
 std::string MacroCommand::Description() const

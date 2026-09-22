@@ -9,9 +9,10 @@ void ChangeBiomeCommand::Execute()
     scene_.SwitchBiome(newFactory_);
 }
 
-void ChangeBiomeCommand::Undo()
+bool ChangeBiomeCommand::Undo()
 {
     scene_.SwitchBiome(*previousFactory_);
+    return true; // switching biome back always succeeds - nothing for the ecosystem to have destroyed
 }
 
 std::string ChangeBiomeCommand::Description() const

@@ -11,7 +11,7 @@ public:
     AddWeedCommand(Scene& scene, Vector2 position);
 
     void Execute() override;
-    void Undo() override;
+    bool Undo() override;
     std::string Description() const override;
 
 private:

@@ -104,45 +104,52 @@ Decoration* Scene::SpawnDecoration(Vector2 position)
     return decoration_.back().get();
 }
 
-void Scene::RemoveEntity(AquaticEntity* entity)
+bool Scene::RemoveEntity(AquaticEntity* entity)
 {
     const auto it = std::remove_if(entities_.begin(), entities_.end(),
         [entity](const std::unique_ptr<AquaticEntity>& e) { return e.get() == entity; });
     if (it != entities_.end())
     {
         entities_.erase(it, entities_.end());
-        return;
+        return true;
     }
     // Not a top-level entity - it may be a Fish grouped into a Shoal.
     for (auto& e : entities_)
     {
         if (e->RemoveMember(entity))
-            return;
+            return true;
     }
+    return false;
 }
 
-void Scene::RemoveFood(Food* food)
+bool Scene::RemoveFood(Food* food)
 {
+    const auto before = food_.size();
     food_.erase(
         std::remove_if(food_.begin(), food_.end(),
             [food](const std::unique_ptr<Food>& f) { return f.get() == food; }),
         food_.end());
+    return food_.size() != before;
 }
 
-void Scene::RemoveWeed(Weed* weed)
+bool Scene::RemoveWeed(Weed* weed)
 {
+    const auto before = weed_.size();
     weed_.erase(
         std::remove_if(weed_.begin(), weed_.end(),
             [weed](const std::unique_ptr<Weed>& w) { return w.get() == weed; }),
         weed_.end());
+    return weed_.size() != before;
 }
 
-void Scene::RemoveDecoration(Decoration* decoration)
+bool Scene::RemoveDecoration(Decoration* decoration)
 {
+    const auto before = decoration_.size();
     decoration_.erase(
         std::remove_if(decoration_.begin(), decoration_.end(),
             [decoration](const std::unique_ptr<Decoration>& d) { return d.get() == decoration; }),
         decoration_.end());
+    return decoration_.size() != before;
 }
 
 void Scene::Update(float dt)

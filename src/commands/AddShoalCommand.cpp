@@ -11,10 +11,11 @@ void AddShoalCommand::Execute()
     shoal_ = scene_.SpawnShoal(species_, center_, count_);
 }
 
-void AddShoalCommand::Undo()
+bool AddShoalCommand::Undo()
 {
-    scene_.RemoveEntity(shoal_);
+    const bool removed = scene_.RemoveEntity(shoal_);
     shoal_ = nullptr;
+    return removed;
 }
 
 std::string AddShoalCommand::Description() const

@@ -15,7 +15,13 @@ public:
     void Execute(std::unique_ptr<ICommand> command);
 
     // Returns the undone/redone command's Description(), or an empty string
-    // if there was nothing to undo/redo.
+    // if there was nothing to undo/redo (empty undo/redo stack). Undo()'s
+    // description gets a "(already gone, nothing to undo)" suffix if the
+    // command's own Undo() reported it had nothing left to reverse - its
+    // target (a fish or food) was already removed by the ecosystem itself
+    // (eaten) before the user pressed Undo. Such a command is discarded
+    // rather than pushed to the redo stack, since redoing it would just
+    // spawn a brand new object out of nowhere, not restore anything.
     std::string Undo();
     std::string Redo();
 

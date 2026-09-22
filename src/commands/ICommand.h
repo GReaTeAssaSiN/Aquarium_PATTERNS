@@ -11,7 +11,12 @@ public:
     virtual ~ICommand() = default;
 
     virtual void Execute() = 0;
-    virtual void Undo() = 0;
+
+    // Returns false if there was nothing left to undo (the target - a fish
+    // or food - was already removed by the ecosystem itself, e.g. eaten,
+    // rather than by this command). CommandHistory uses this to report
+    // honestly and to avoid resurrecting a brand new object on a later Redo.
+    virtual bool Undo() = 0;
 
     // Human-readable label for this command's action (e.g. "Spawned food"),
     // used to annotate undo/redo history. Does not change with direction -
