@@ -37,6 +37,9 @@ float RandomOffset(float range)
 
 constexpr float kFoodEatRadius = 25.f;
 constexpr float kPredatorEatRadius = 35.f;
+// Keep in sync with WeedHidingHandler's own kShelterRadius: a fish this
+// close to any weed counts as hidden.
+constexpr float kWeedShelterRadius = 120.f;
 }
 
 Scene::Scene(Vector2 bounds, const AquariumFactory& initialFactory)
@@ -157,7 +160,8 @@ void Scene::Update(float dt)
         context.weedPositions.push_back(weed->GetPosition());
     for (const auto& entity : entities_)
     {
-        if (Fish* fish = entity->AsFish(); fish && fish->GetSpecies() != Species::Predator)
+        if (Fish* fish = entity->AsFish(); fish && fish->GetSpecies() != Species::Predator &&
+            !IsSheltered(fish->GetPosition()))
             context.huntablePrey.push_back(fish->GetPosition());
     }
 
@@ -197,10 +201,12 @@ void Scene::HandleEating()
 
     entities_.erase(
         std::remove_if(entities_.begin(), entities_.end(),
-            [&predatorPositions](const std::unique_ptr<AquaticEntity>& entity)
+            [&predatorPositions, this](const std::unique_ptr<AquaticEntity>& entity)
             {
                 Fish* fish = entity->AsFish();
                 if (!fish || fish->GetSpecies() == Species::Predator)
+                    return false;
+                if (IsSheltered(fish->GetPosition())) // hiding in weed protects from being eaten too
                     return false;
                 for (const auto& predatorPosition : predatorPositions)
                 {
@@ -210,6 +216,16 @@ void Scene::HandleEating()
                 return false;
             }),
         entities_.end());
+}
+
+bool Scene::IsSheltered(Vector2 position) const
+{
+    for (const auto& weed : weed_)
+    {
+        if ((weed->GetPosition() - position).Length() < kWeedShelterRadius)
+            return true;
+    }
+    return false;
 }
 
 void Scene::Draw(sf::RenderWindow& window) const

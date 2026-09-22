@@ -52,6 +52,13 @@ private:
     // Shoal are exempt (AsFish() returns nullptr for Shoal, see AquaticEntity).
     void HandleEating();
 
+    // True if a fish at this position is close enough to any weed to count
+    // as hidden (matches WeedHidingHandler's own shelter radius). Hidden
+    // fish are excluded from hunting (FishContext::huntablePrey) and from
+    // eating (HandleEating) - otherwise WeedHidingHandler's "swim to weed"
+    // would be pure decoration with no actual protection.
+    bool IsSheltered(Vector2 position) const;
+
     Vector2 bounds_;
     const AquariumFactory* activeFactory_;
     std::vector<std::unique_ptr<AquaticEntity>> entities_;

@@ -1,5 +1,7 @@
 #include "creatures/Fish.h"
 
+#include <cmath>
+
 #include "builders/ReportData.h"
 #include "chain/FishContext.h"
 #include "chain/FishDecisionHandler.h"
@@ -74,24 +76,40 @@ void ClampToWaterColumn(Vector2& position, Vector2& heading, float maxY)
     }
 }
 
-// How fast heading_ turns toward the chain's desired direction, per second.
-// Without this, heading_ would snap fully to whatever the chain decides each
-// frame; when several same-species fish are packed tightly, FlockingHandler's
-// separation/cohesion can flip which one it picks every frame (distance
-// crosses the separation threshold back and forth by a pixel or two), and a
-// fish that fully reverses direction every frame goes nowhere - it trembles
-// in place instead of moving. Turning only partway each frame smooths that
-// out into an actual curve.
+// How fast heading_ turns toward the chain's desired direction, in radians
+// per second. Without this, heading_ would snap fully to whatever the chain
+// decides each frame; when several same-species fish are packed tightly,
+// FlockingHandler's separation/cohesion can flip which one it picks every
+// frame (distance crosses the separation threshold back and forth by a
+// pixel or two), and a fish that fully reverses direction every frame goes
+// nowhere - it trembles in place instead of moving. Turning only partway
+// each frame smooths that out into an actual curve.
 constexpr float kTurnRate = 6.f;
+constexpr float kPi = 3.14159265f;
 
+// Rotates current toward desired by at most kTurnRate*dt radians this frame.
+// Turning is done as an angle, not a linear blend of the two vectors: when
+// desired points close to exactly opposite current (a near-180 degree
+// reversal - e.g. a fish spawned right next to what it needs to flee from),
+// blending current and desired as vectors and renormalizing produces a
+// vector that's still pointing in current's original direction (just
+// shorter) as long as the blend weight is under 0.5 - so the fish could
+// never actually turn around, no matter how many frames passed. Rotating by
+// angle has no such degenerate case.
 Vector2 SteerToward(Vector2 current, Vector2 desired, float dt)
 {
-    const float turnFactor = kTurnRate * dt < 1.f ? kTurnRate * dt : 1.f;
-    const Vector2 blended = (current + (desired - current) * turnFactor).Normalized();
-    // Only degenerate case: current and desired point exactly opposite with
-    // equal weight, cancelling to zero - keep the old heading instead of
-    // freezing (same fallback pattern used by every handler's Decide()).
-    return blended.Length() > 0.01f ? blended : current;
+    const float currentAngle = std::atan2(current.y, current.x);
+    const float desiredAngle = std::atan2(desired.y, desired.x);
+
+    float delta = desiredAngle - currentAngle;
+    while (delta > kPi) delta -= 2.f * kPi;
+    while (delta < -kPi) delta += 2.f * kPi;
+
+    const float maxStep = kTurnRate * dt;
+    const float step = std::abs(delta) < maxStep ? delta : (delta > 0.f ? maxStep : -maxStep);
+
+    const float newAngle = currentAngle + step;
+    return {std::cos(newAngle), std::sin(newAngle)};
 }
 }
 
