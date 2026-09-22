@@ -155,6 +155,11 @@ void Scene::Update(float dt)
         context.food.push_back({food->GetPosition(), food->GetFamilyName()});
     for (const auto& weed : weed_)
         context.weedPositions.push_back(weed->GetPosition());
+    for (const auto& entity : entities_)
+    {
+        if (Fish* fish = entity->AsFish(); fish && fish->GetSpecies() != Species::Predator)
+            context.huntablePrey.push_back(fish->GetPosition());
+    }
 
     for (auto& entity : entities_)
         entity->Update(dt, context);

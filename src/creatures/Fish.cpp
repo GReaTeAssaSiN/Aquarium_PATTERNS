@@ -5,25 +5,31 @@
 #include "chain/FishDecisionHandler.h"
 #include "chain/FlockingHandler.h"
 #include "chain/FoodNearbyHandler.h"
+#include "chain/HuntPreyHandler.h"
 #include "chain/PredatorNearbyHandler.h"
 #include "chain/WeedHidingHandler.h"
 
 namespace
 {
 // Built once, shared by every fish:
-// WeedHidingHandler -> PredatorNearbyHandler -> FoodNearbyHandler -> FlockingHandler.
+// WeedHidingHandler -> PredatorNearbyHandler -> HuntPreyHandler -> FoodNearbyHandler -> FlockingHandler.
 // Shelter is checked before fleeing, so a fish near weed hides instead of
-// panicking into open water.
+// panicking into open water. WeedHidingHandler/PredatorNearbyHandler both
+// exclude predators (CanHandle is false for Species::Predator), so a
+// predator's real chain is just HuntPreyHandler -> FoodNearbyHandler ->
+// FlockingHandler: chase prey first, eat food if none nearby, otherwise flock.
 const FishDecisionHandler& GetDecisionChain()
 {
     static const std::unique_ptr<FishDecisionHandler> chain = []
     {
         auto hiding = std::make_unique<WeedHidingHandler>();
         auto predator = std::make_unique<PredatorNearbyHandler>();
+        auto hunt = std::make_unique<HuntPreyHandler>();
         auto food = std::make_unique<FoodNearbyHandler>();
         auto flocking = std::make_unique<FlockingHandler>();
         food->SetNext(std::move(flocking));
-        predator->SetNext(std::move(food));
+        hunt->SetNext(std::move(food));
+        predator->SetNext(std::move(hunt));
         hiding->SetNext(std::move(predator));
         return hiding;
     }();

@@ -30,6 +30,11 @@ struct FishContext
     std::vector<FoodInfo> food;
     std::vector<Vector2> weedPositions;
     std::vector<FishInfo> neighbors; // every fish in the aquarium (species+position+heading)
+    // Non-predator fish a predator could actually eat on contact - unlike
+    // `neighbors`, this excludes fish grouped into a Shoal (Scene::HandleEating
+    // can't reach them), so HuntPreyHandler never chases a target it can never
+    // catch.
+    std::vector<Vector2> huntablePrey;
 };
 
 #endif // FISH_CONTEXT_H_
