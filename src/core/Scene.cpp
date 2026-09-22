@@ -4,9 +4,20 @@
 #include <cstdlib>
 
 #include "chain/FishContext.h"
+#include "render/TextureCache.h"
 
 namespace
 {
+const char* BackgroundPathForBiome(const char* biomeName)
+{
+    const std::string name = biomeName;
+    if (name == "Freshwater")
+        return "sprites/freshwater_background.png";
+    if (name == "Reef")
+        return "sprites/reef_background.png";
+    return "sprites/deepsea_background.png";
+}
+
 BiomeCounts& FindOrCreateBiomeCounts(std::vector<BiomeCounts>& counts, const std::string& biomeName)
 {
     for (auto& entry : counts)
@@ -198,6 +209,15 @@ void Scene::HandleEating()
 
 void Scene::Draw(sf::RenderWindow& window) const
 {
+    // Stretched to exactly fill the current window bounds, so it stays
+    // correct across resizes without needing its own rescale bookkeeping.
+    const sf::Texture& background = render::GetTexture(BackgroundPathForBiome(activeFactory_->GetName()));
+    const sf::Vector2u backgroundSize = background.getSize();
+    sf::Sprite backgroundSprite(background);
+    backgroundSprite.setScale(
+        {bounds_.x / static_cast<float>(backgroundSize.x), bounds_.y / static_cast<float>(backgroundSize.y)});
+    window.draw(backgroundSprite);
+
     for (const auto& decoration : decoration_)
         decoration->Draw(window);
     for (const auto& weed : weed_)

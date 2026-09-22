@@ -1,5 +1,7 @@
 #include "creatures/FreshwaterFish.h"
 
+#include "render/TextureCache.h"
+
 namespace
 {
 float RadiusForSpecies(Species species)
@@ -12,29 +14,45 @@ float RadiusForSpecies(Species species)
     }
 }
 
-// Same orange family for every Freshwater fish, shaded by species: darker
-// (more aggressive-looking) for Predator, paler for Prey, plain for Common.
-sf::Color ColorForSpecies(Species species)
+// Predator gets a real speed edge over its own biome's Prey/Common - without
+// this they all move at the same top speed, so a fleeing fish can never
+// actually be caught (see Scene::HandleEating's kPredatorEatRadius).
+float SpeedForSpecies(Species species)
+{
+    return species == Species::Predator ? 50.f : 40.f;
+}
+
+// Sprite art already tells species apart (fin shape, expression) - no need
+// for a separate per-species color on top of it.
+const char* SpritePathForSpecies(Species species)
 {
     switch (species)
     {
-        case Species::Predator: return sf::Color(200, 90, 20);
-        case Species::Prey: return sf::Color(255, 210, 130);
-        default: return sf::Color(255, 165, 0);
+        case Species::Predator: return "sprites/freshwater_predator.png";
+        case Species::Prey: return "sprites/freshwater_prey.png";
+        default: return "sprites/freshwater_common.png";
     }
 }
 }
 
 FreshwaterFish::FreshwaterFish(Species species, Vector2 position)
-    : Fish(species, position, 40.f), radius_(RadiusForSpecies(species)) {}
+    : Fish(species, position, SpeedForSpecies(species)), radius_(RadiusForSpecies(species)) {}
 
 void FreshwaterFish::Draw(sf::RenderWindow& window) const
 {
-    sf::CircleShape shape(radius_);
-    shape.setFillColor(ColorForSpecies(species_));
-    shape.setOrigin({radius_, radius_});
-    shape.setPosition({position_.x, position_.y});
-    window.draw(shape);
+    const sf::Texture& texture = render::GetTexture(SpritePathForSpecies(species_));
+    const sf::Vector2u texSize = texture.getSize();
+    // radius_ * 2 keeps the same on-screen footprint the old circle had
+    // (its diameter), just now driving a sprite's width instead.
+    const float scale = (radius_ * 2.f) / static_cast<float>(texSize.x);
+
+    sf::Sprite sprite(texture);
+    sprite.setOrigin({texSize.x / 2.f, texSize.y / 2.f});
+    // Sprite faces right by default (matches heading_'s default {1,0});
+    // mirror horizontally when swimming left so it doesn't look backwards.
+    sprite.setScale({heading_.x < 0.f ? -scale : scale, scale});
+    sprite.setPosition({position_.x, position_.y});
+    window.draw(sprite);
 }
 
 std::unique_ptr<Fish> FreshwaterFish::Clone(Vector2 position) const

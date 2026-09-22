@@ -27,6 +27,7 @@
 #include "factories/DeepSeaFactory.h"
 #include "factories/FreshwaterFactory.h"
 #include "factories/ReefFactory.h"
+#include "render/TextureCache.h"
 
 namespace
 {
@@ -48,6 +49,7 @@ std::string BuildHudText(const char* biomeName, const char* reportFormat,
            "Z - undo\n"
            "X - redo\n"
            "P - apply aquascape preset (macro command)\n"
+           "U - feeding frenzy: spawn 10 food (macro command)\n"
            "Esc - quit";
 
     if (!recentActions.empty())
@@ -292,6 +294,36 @@ int main()
                     actionHistory.Record(std::string("Applied aquascape preset in ") + scene.ActiveBiomeName());
                     refreshHud(scene.ActiveBiomeName(), reportCreators[activeFormatIndex]->GetFormatName());
                 }
+                else if (keyPressed->code == sf::Keyboard::Key::U)
+                {
+                    // MacroCommand: several food commands applied - and undone - as a single step.
+                    std::vector<std::unique_ptr<ICommand>> preset;
+                    preset.push_back(std::make_unique<FeedCommand>(
+                        scene, Vector2{RandomInRange(bounds.x), RandomInRange(bounds.y)}));
+                    preset.push_back(std::make_unique<FeedCommand>(
+                        scene, Vector2{RandomInRange(bounds.x), RandomInRange(bounds.y)}));
+                    preset.push_back(std::make_unique<FeedCommand>(
+                        scene, Vector2{RandomInRange(bounds.x), RandomInRange(bounds.y)}));
+                    preset.push_back(std::make_unique<FeedCommand>(
+                        scene, Vector2{RandomInRange(bounds.x), RandomInRange(bounds.y)}));
+                    preset.push_back(std::make_unique<FeedCommand>(
+                        scene, Vector2{RandomInRange(bounds.x), RandomInRange(bounds.y)}));
+                    preset.push_back(std::make_unique<FeedCommand>(
+                        scene, Vector2{RandomInRange(bounds.x), RandomInRange(bounds.y)}));
+                    preset.push_back(std::make_unique<FeedCommand>(
+                        scene, Vector2{RandomInRange(bounds.x), RandomInRange(bounds.y)}));
+                    preset.push_back(std::make_unique<FeedCommand>(
+                        scene, Vector2{RandomInRange(bounds.x), RandomInRange(bounds.y)}));
+                    preset.push_back(std::make_unique<FeedCommand>(
+                        scene, Vector2{RandomInRange(bounds.x), RandomInRange(bounds.y)}));
+                    preset.push_back(std::make_unique<FeedCommand>(
+                        scene, Vector2{RandomInRange(bounds.x), RandomInRange(bounds.y)}));
+                    
+                    commandHistory.Execute(
+                        std::make_unique<MacroCommand>(std::move(preset), "feeding frenzy (10 food)"));
+                    actionHistory.Record(std::string("Applied feeding frenzy in ") + scene.ActiveBiomeName());
+                    refreshHud(scene.ActiveBiomeName(), reportCreators[activeFormatIndex]->GetFormatName());
+                }
             }
         }
 
@@ -305,6 +337,12 @@ int main()
         window.draw(hudText);
         window.display();
     }
+
+    // Must run while `window` (and its GL context) is still alive: the cache
+    // is a function-local static, so it would otherwise be torn down after
+    // main() returns - by then the context is already gone, and destroying
+    // an sf::Texture with no live GL context crashes on exit.
+    render::ClearCache();
 
     return 0;
 }

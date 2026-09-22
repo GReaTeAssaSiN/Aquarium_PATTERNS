@@ -32,6 +32,7 @@ const FishDecisionHandler& GetDecisionChain()
 
 constexpr float kEdgeMargin = 20.f;
 
+// Horizontal only: swimming off one side teleports the fish in from the other.
 float WrapCoordinate(float value, float max)
 {
     if (value < -kEdgeMargin)
@@ -39,6 +40,32 @@ float WrapCoordinate(float value, float max)
     if (value > max + kEdgeMargin)
         return -kEdgeMargin;
     return value;
+}
+
+// Vertical: a hard stop at the top and bottom window edges, not a wrap - the
+// sand at the bottom is purely a background image (fish can swim into it, so
+// hiding in weed rooted there actually looks like hiding in it, not floating
+// above it); this just stops fish leaving the window, and unlike the
+// horizontal edges, never teleports from the bottom back up to the top.
+// Also flips the vertical component of heading so the fish bounces back
+// into view instead of pressing into the edge forever - without this, a fish
+// whose heading still pointed down (e.g. flocking toward a group centered
+// near the bottom) would stay pinned exactly on the edge every frame, only
+// sliding sideways - visually a straight "shelf" of stuck fish.
+void ClampToWaterColumn(Vector2& position, Vector2& heading, float maxY)
+{
+    if (position.y < 0.f)
+    {
+        position.y = 0.f;
+        if (heading.y < 0.f)
+            heading.y = -heading.y;
+    }
+    else if (position.y > maxY)
+    {
+        position.y = maxY;
+        if (heading.y > 0.f)
+            heading.y = -heading.y;
+    }
 }
 
 // How fast heading_ turns toward the chain's desired direction, per second.
@@ -68,7 +95,7 @@ void Fish::Update(float dt, const FishContext& context)
     heading_ = SteerToward(heading_, desired, dt);
     position_ = position_ + heading_ * (speed_ * dt);
     position_.x = WrapCoordinate(position_.x, context.bounds.x);
-    position_.y = WrapCoordinate(position_.y, context.bounds.y);
+    ClampToWaterColumn(position_, heading_, context.bounds.y);
 }
 
 void Fish::CollectFishInfo(std::vector<FishInfo>& out) const

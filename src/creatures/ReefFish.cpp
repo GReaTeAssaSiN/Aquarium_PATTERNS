@@ -1,5 +1,7 @@
 #include "creatures/ReefFish.h"
 
+#include "render/TextureCache.h"
+
 namespace
 {
 float SizeForSpecies(Species species)
@@ -12,31 +14,44 @@ float SizeForSpecies(Species species)
     }
 }
 
-// Same teal family for every Reef fish, shaded by species: darker for
-// Predator, paler for Prey, plain for Common.
-sf::Color ColorForSpecies(Species species)
+// Predator gets a real speed edge over its own biome's Prey/Common - without
+// this they all move at the same top speed, so a fleeing fish can never
+// actually be caught (see Scene::HandleEating's kPredatorEatRadius).
+float SpeedForSpecies(Species species)
+{
+    return species == Species::Predator ? 44.f : 35.f;
+}
+
+// Sprite art already tells species apart (fin shape, expression) - no need
+// for a separate per-species color on top of it.
+const char* SpritePathForSpecies(Species species)
 {
     switch (species)
     {
-        case Species::Predator: return sf::Color(0, 130, 150);
-        case Species::Prey: return sf::Color(150, 235, 235);
-        default: return sf::Color(0, 200, 210);
+        case Species::Predator: return "sprites/reef_predator.png";
+        case Species::Prey: return "sprites/reef_prey.png";
+        default: return "sprites/reef_common.png";
     }
 }
 }
 
 ReefFish::ReefFish(Species species, Vector2 position)
-    : Fish(species, position, 35.f), size_(SizeForSpecies(species)) {}
+    : Fish(species, position, SpeedForSpecies(species)), size_(SizeForSpecies(species)) {}
 
 void ReefFish::Draw(sf::RenderWindow& window) const
 {
-    sf::ConvexShape triangle(3);
-    triangle.setPoint(0, {size_, 0.f});
-    triangle.setPoint(1, {-size_, -size_ * 0.6f});
-    triangle.setPoint(2, {-size_, size_ * 0.6f});
-    triangle.setFillColor(ColorForSpecies(species_));
-    triangle.setPosition({position_.x, position_.y});
-    window.draw(triangle);
+    const sf::Texture& texture = render::GetTexture(SpritePathForSpecies(species_));
+    const sf::Vector2u texSize = texture.getSize();
+    // size_ * 2 keeps the same on-screen width the old triangle had.
+    const float scale = (size_ * 2.f) / static_cast<float>(texSize.x);
+
+    sf::Sprite sprite(texture);
+    sprite.setOrigin({texSize.x / 2.f, texSize.y / 2.f});
+    // Sprite faces right by default (matches heading_'s default {1,0});
+    // mirror horizontally when swimming left so it doesn't look backwards.
+    sprite.setScale({heading_.x < 0.f ? -scale : scale, scale});
+    sprite.setPosition({position_.x, position_.y});
+    window.draw(sprite);
 }
 
 std::unique_ptr<Fish> ReefFish::Clone(Vector2 position) const
